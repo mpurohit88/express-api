@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -8,6 +9,7 @@ const app = express();
 const PORT = 3002;
 
 app.use(cors());
+app.use(bodyParser());
 
 app.get('/', (req, res) => {
   res.send('Server is running!!');
@@ -33,13 +35,34 @@ app.get('/verifyToken', (req, res) => {
 })
 
 app.get('/course.json', (req, res) => {
-  axios.get(`https://react-hook-lms.firebaseio.com/course.json?auth=key`)
-    .then(response => {
-      res.send(response.data);
-    })
-    .catch(err => {
-      throw err;
-    });
+
+  connection.pool.query('SELECT * FROM course', function (error, results, fields) {
+    if (error) throw error;
+    console.log('The solution is: ', results[0].solution);
+
+    res.send(results)
+  });
+
+  // axios.get(`https://react-hook-lms.firebaseio.com/course.json?auth=key`)
+  //   .then(response => {
+  //     res.send(response.data);
+  //   })
+  //   .catch(err => {
+  //     throw err;
+  //   });
+})
+
+app.post('/course.json', (req, res) => {
+
+  console.log("Data....", req.body);
+  const course = req.body.course;
+
+  const VALUES = [[course.courseName, course.category, course.subCategory, course.fees]]
+  connection.pool.query('INSERT INTO COURSE (name, category_id, subCategory_id, price) VALUES ?', [VALUES], function (error, results, fields) {
+    if (error) throw error;
+
+    res.send("Query executed Successfully");
+  })
 })
 
 app.get('/testMySql', (req, res) => {
